@@ -61,6 +61,7 @@ class UploadedFileHistoryController extends Controller
         }
 
         // Web request - redirect to home page 
+        // return redirect('/')->with('success', 'File upload initiated successfully! Processing has started.');
         return redirect('/');
     }
 }
