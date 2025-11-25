@@ -11,10 +11,23 @@ use Illuminate\Http\Request;
 class UploadedFileHistoryController extends Controller
 {
 
-    public function index(UploadedFileHistory $uploadedFileHistory)
+    public function index(Request $request)
     {
-        $uploadedFiles = UploadedFileHistory::latest()->get();
-        return view('home', compact('uploadedFiles'));
+        // $uploadedFiles = UploadedFileHistory::latest()->get();
+        $sort = $request->get('sort', 'time');        // default: sort by time
+        $direction = $request->get('direction', 'desc'); // default: newest first
+
+        $query = UploadedFileHistory::query();
+
+        // Sorting logic
+        if ($sort === 'time') {
+            $query->orderBy('created_at', $direction);
+        } elseif ($sort === 'name') {
+            $query->orderBy('file_name', $direction);
+        }
+
+        $uploadedFiles = $query->get();
+        return view('home', compact('uploadedFiles', 'sort', 'direction'));
 
     }
 

@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <title>Dashboard</title>
+    <title>YoPrint Laravel Coding Project IV</title>
 </head>
 
 <body class="bg-gray-700 text-white">

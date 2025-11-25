@@ -1,81 +1,102 @@
-<table class="table-fixed w-[89%] mt-10 mx-auto bg-white text-black rounded-md ">
-    {{-- need to add: when clicked on the header, it will sort according to
-    time: recent-newest, file name: alphabetically asc or desc, respectively --}}
-    <thead>
-        <tr>
-            <th class="border px-4 py-1">Time</th>
-            <th class="border px-4 py-1">File Name</th>
-            <th class="border px-4 py-1">Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse ($uploadedFiles as $file)
-            <tr data-file-id="{{ $file->id }}">
-                <td class="border px-4 py-2">
-                    {{ $file->created_at->format('Y-m-d h:i A') }}
-                    <br>
-                    <span class="time-ago" data-timestamp="{{ $file->created_at->toISOString() }}">
-                        ({{ $file->created_at->diffForHumans() }})
-                    </span>
-                </td>
-                <td class="border px-4 py-2">{{ $file->file_name }}</td>
-                <td class="border px-4 py-2 status-cell">{{ $file->status }}</td>
-            </tr>
-        @empty
-            <tr>
-                <td class="border px-4 py-2 text-center" colspan="3">No uploaded files found.</td>
-            </tr>
-        @endforelse
-    </tbody>
-</table>
+@php
+    // Helper functions for sorting arrows and next sort direction
+    function arrow($col, $sort, $direction)
+    {
+        if ($col !== $sort) return '';
+        return $direction === 'asc' ? '▲' : '▼';
+    }
 
-@script
+    function nextDirection($col, $sort, $direction)
+    {
+        if ($col !== $sort) return 'asc';
+        return $direction === 'asc' ? 'desc' : 'asc';
+    }
+@endphp
+
+<div class="max-w-7xl mx-auto mt-10 mb-15 p-6 bg-white bg-opacity-50 backdrop-blur-md shadow-xl rounded-xl">
+    <table class="table-fixed w-full bg-white text-black rounded-md">
+        <thead class="bg-sky-100 bg-opacity-50">
+            <tr class="px-6 py-3 text-left text-xs font-bold text-indigo-500 uppercase tracking-wider">
+                <!-- Sort by Time -->
+                <th class="px-4 py-5 cursor-pointer">
+                    <a href="?sort=time&direction={{ nextDirection('time', $sort, $direction) }}" class="flex items-center gap-1">
+                        Time
+                        <span>{{ arrow('time', $sort, $direction) }}</span>
+                    </a>
+                </th>
+
+                <!-- Sort by Name -->
+                <th class="px-4 py-5 cursor-pointer">
+                    <a href="?sort=name&direction={{ nextDirection('name', $sort, $direction) }}" class="flex items-center gap-1">
+                        File Name
+                        <span>{{ arrow('name', $sort, $direction) }}</span>
+                    </a>
+                </th>
+
+                <th class="px-4 py-5">Status</th>
+            </tr>
+        </thead>
+
+        <tbody class="bg-opacity-70 divide-y divide-gray-200 text-black">
+            @forelse ($uploadedFiles as $file)
+                <tr data-file-id="{{ $file->id }}" class="hover:bg-gray-100 transition-colors duration-200">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {{ $file->created_at->format('Y-m-d h:i A') }}
+                        <br>
+                        <span class="time-ago text-gray-500" data-timestamp="{{ $file->created_at->toISOString() }}">
+                            ({{ $file->created_at->diffForHumans() }})
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">{{ $file->file_name }}</td>
+                    <td class="px-4 py-4 whitespace-nowrap status-cell">
+                        <x-status :status="$file->status" />
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td class="border px-4 py-2 text-center" colspan="3">No uploaded files found.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
 <script>
-    // Wait for Echo to be initialized before setting up listeners
+    // Initialize Laravel Echo for real-time status updates
     function initializeEcho() {
         if (typeof window.Echo === 'undefined') {
             setTimeout(initializeEcho, 100);
             return;
         }
 
-        // Listen for file process status updates via Laravel Echo
+        // Listen for file process status updates
         window.Echo.channel('file-process-status-updates')
             .listen('FileProcessStatusUpdated', (event) => {
                 console.log('Status update received:', event);
 
-                const fileId = event.file_id;
-
-                const row = document.querySelector(`tbody tr[data-file-id="${fileId}"]`);
-
+                const row = document.querySelector(`tbody tr[data-file-id="${event.file_id}"]`);
                 if (!row) return;
 
                 const statusCell = row.querySelector('.status-cell');
                 statusCell.textContent = event.status;
 
+                // Highlight status briefly
                 statusCell.classList.add('bg-yellow-100');
                 setTimeout(() => statusCell.classList.remove('bg-yellow-100'), 1000);
             });
-
-
     }
 
-
+    // Update all "time-ago" timestamps
     function updateTimestamps() {
-        // Find all elements with the 'time-ago' class
-        document.querySelectorAll('.time-ago').forEach(element => {
-            const rawTimestamp = element.getAttribute('data-timestamp');
-            // Check if timestamp is valid
-            if (rawTimestamp) {
-                // Use a client-side library (built-in Date object and a simple function or a library) to format the time difference
-                element.textContent = calculateDiffForHumans(new Date(rawTimestamp));
-            }
+        document.querySelectorAll('.time-ago').forEach(el => {
+            const rawTimestamp = el.getAttribute('data-timestamp');
+            if (rawTimestamp) el.textContent = calculateDiffForHumans(new Date(rawTimestamp));
         });
     }
 
-    // A simple client-side function to calculate the difference between now and the uploaded date
+    // function to format time difference
     function calculateDiffForHumans(date) {
         const seconds = Math.floor((Date.now() - new Date(date)) / 1000);
-
         const units = [
             { label: "year", secs: 31536000 },
             { label: "month", secs: 2592000 },
@@ -87,20 +108,15 @@
 
         for (const unit of units) {
             const interval = Math.floor(seconds / unit.secs);
-            if (interval >= 1) {
-                return `(${interval} ${unit.label}${interval > 1 ? "s" : ""} ago)`;
-            }
+            if (interval >= 1) return `(${interval} ${unit.label}${interval > 1 ? "s" : ""} ago)`;
         }
-
         return "(just now)";
     }
 
-    // Initialize Echo and timestamps when DOM is ready
+    // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', () => {
         initializeEcho();
-        // Update the timestamps initially and then every 10 seconds
         updateTimestamps();
-        setInterval(updateTimestamps, 10000);
+        setInterval(updateTimestamps, 10000); // Update every 10s
     });
-
 </script>
