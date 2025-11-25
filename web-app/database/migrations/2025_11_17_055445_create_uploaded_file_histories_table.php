@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('file_name');
             $table->string('status')->default('pending');
             $table->string('stored_path');
+            $table->unsignedBigInteger('file_size');
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
         });

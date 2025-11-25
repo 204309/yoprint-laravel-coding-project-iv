@@ -10,7 +10,7 @@ class Product extends Model
         'unique_key',
         'product_title',
         'product_description',
-        'style',
+        'style#',
         'sanmar_mainframe_color',
         'size',
         'color_name',
