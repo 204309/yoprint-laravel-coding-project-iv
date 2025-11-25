@@ -36,10 +36,14 @@ class FileProcessStatusUpdated implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
+
+        $statusHtml = view('components.status', ['status' => $this->status])->render();
+
         return [
             'file_id' => $this->uploadedFilePath->id,
             'file_name' => $this->uploadedFilePath->file_name,
             'status' => $this->status,
+            'status_html' => $statusHtml,
         ];
     }
 }

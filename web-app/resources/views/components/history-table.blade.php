@@ -2,64 +2,76 @@
     // Helper functions for sorting arrows and next sort direction
     function arrow($col, $sort, $direction)
     {
-        if ($col !== $sort) return '';
+        if ($col !== $sort)
+            return '';
         return $direction === 'asc' ? '▲' : '▼';
     }
 
     function nextDirection($col, $sort, $direction)
     {
-        if ($col !== $sort) return 'asc';
+        if ($col !== $sort)
+            return 'asc';
         return $direction === 'asc' ? 'desc' : 'asc';
     }
 @endphp
 
-<div class="max-w-7xl mx-auto mt-10 mb-15 p-6 bg-white bg-opacity-50 backdrop-blur-md shadow-xl rounded-xl">
-    <table class="table-fixed w-full bg-white text-black rounded-md">
-        <thead class="bg-sky-100 bg-opacity-50">
-            <tr class="px-6 py-3 text-left text-xs font-bold text-indigo-500 uppercase tracking-wider">
-                <!-- Sort by Time -->
-                <th class="px-4 py-5 cursor-pointer">
-                    <a href="?sort=time&direction={{ nextDirection('time', $sort, $direction) }}" class="flex items-center gap-1">
-                        Time
-                        <span>{{ arrow('time', $sort, $direction) }}</span>
-                    </a>
-                </th>
-
-                <!-- Sort by Name -->
-                <th class="px-4 py-5 cursor-pointer">
-                    <a href="?sort=name&direction={{ nextDirection('name', $sort, $direction) }}" class="flex items-center gap-1">
-                        File Name
-                        <span>{{ arrow('name', $sort, $direction) }}</span>
-                    </a>
-                </th>
-
-                <th class="px-4 py-5">Status</th>
-            </tr>
-        </thead>
-
-        <tbody class="bg-opacity-70 divide-y divide-gray-200 text-black">
-            @forelse ($uploadedFiles as $file)
-                <tr data-file-id="{{ $file->id }}" class="hover:bg-gray-100 transition-colors duration-200">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        {{ $file->created_at->format('Y-m-d h:i A') }}
-                        <br>
-                        <span class="time-ago text-gray-500" data-timestamp="{{ $file->created_at->toISOString() }}">
-                            ({{ $file->created_at->diffForHumans() }})
-                        </span>
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap">{{ $file->file_name }}</td>
-                    <td class="px-4 py-4 whitespace-nowrap status-cell">
-                        <x-status :status="$file->status" />
-                    </td>
+<div
+    class="max-w-[calc(100vw_-_150px)] max-w-7xl mx-auto mt-10 mb-15 p-6 bg-white bg-opacity-50 backdrop-blur-md shadow-xl rounded-xl overflow-hidden">
+    {{-- Main wrapper for positioning --}}
+    <div class="relative">
+        {{-- table headers --}}
+        <table class="table-fixed w-full bg-white text-black rounded-md">
+            <thead class="bg-sky-100 bg-opacity-50 sticky top-0">
+                <tr class="px-6 py-3 text-left text-xs font-bold text-indigo-500 uppercase tracking-wider">
+                    <th class="px-4 py-5 cursor-pointer">
+                        <a href="?sort=time&direction={{ nextDirection('time', $sort, $direction) }}"
+                            class="flex items-center gap-1">
+                            Time
+                            <span>{{ arrow('time', $sort, $direction) }}</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-5 cursor-pointer">
+                        <a href="?sort=name&direction={{ nextDirection('name', $sort, $direction) }}"
+                            class="flex items-center gap-1">
+                            File Name
+                            <span>{{ arrow('name', $sort, $direction) }}</span>
+                        </a>
+                    </th>
+                    <th class="px-4 py-5">Status</th>
                 </tr>
-            @empty
-                <tr>
-                    <td class="border px-4 py-2 text-center" colspan="3">No uploaded files found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+        </table>
+
+        {{-- table rows (separated into its own scrolling container for consistent behavior across browser) --}}
+        <div class="overflow-y-auto max-h-[calc(100vh_-_370px)]">
+            <table class="table-fixed w-full bg-opacity-70 divide-y divide-gray-200 text-black">
+                <tbody class="bg-opacity-70 divide-y divide-gray-200 text-black">
+                    @forelse ($uploadedFiles as $file)
+                        <tr data-file-id="{{ $file->id }}" class="hover:bg-gray-100 transition-colors duration-200">
+                            <td class="px-6 py-4 whitespace-nowrap w-1/3">{{-- Use widths to align with headers --}}
+                                {{ $file->created_at->format('Y-m-d h:i A') }}
+                                <br>
+                                <span class="time-ago text-gray-500"
+                                    data-timestamp="{{ $file->created_at->toISOString() }}">
+                                    ({{ $file->created_at->diffForHumans() }})
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap w-1/3 overflow-x-auto ">{{ $file->file_name }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap status-cell w-1/3">
+                                <x-status :status="$file->status" />
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td class="border px-4 py-2 text-center" colspan="3">No uploaded files found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
 
 <script>
     // Initialize Laravel Echo for real-time status updates
@@ -79,6 +91,9 @@
 
                 const statusCell = row.querySelector('.status-cell');
                 statusCell.textContent = event.status;
+                // prefer the rendered component HTML, fallback to plain status 
+                statusCell.innerHTML = event.status_html ?? event.status;
+
 
                 // Highlight status briefly
                 statusCell.classList.add('bg-yellow-100');
