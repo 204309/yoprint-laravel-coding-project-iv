@@ -5,3 +5,4 @@ Here are photos of the output:
 <img width="1870" height="1006" alt="スクリーンショット 2025-11-26 061242" src="https://github.com/user-attachments/assets/a0efdd69-f7ab-48f6-91a5-e9628155de21" />
 <img width="1871" height="1003" alt="スクリーンショット 2025-11-26 061535" src="https://github.com/user-attachments/assets/30030a6d-c5e3-47fb-bbe4-11673ed0e269" />
 <img width="1870" height="1006" alt="スクリーンショット 2025-11-26 061557" src="https://github.com/user-attachments/assets/3b4bd492-b2d4-4a50-8c64-3487295e5714" />
+<img width="1870" height="1001" alt="スクリーンショット 2025-11-26 061946" src="https://github.com/user-attachments/assets/11290c42-89ac-415a-bd6b-eecaf26413e1" />
