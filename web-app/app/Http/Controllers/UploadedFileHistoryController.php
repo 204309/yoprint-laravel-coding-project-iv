@@ -7,7 +7,6 @@ use App\Http\Resources\UploadedFileHistoryResource;
 use App\Jobs\ProcessUploadedFile;
 use App\Models\UploadedFileHistory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Process;
 
 class UploadedFileHistoryController extends Controller
 {
@@ -23,22 +22,32 @@ class UploadedFileHistoryController extends Controller
     {
         $request->validate([
             'file' => ['required', 'file', 'mimes:csv'],
+        ], [
+            'file.mimes' => 'The file must be a CSV file.',
         ]);
+
         // store file and save path + original name
-        $uploaded = $request->file('file'); 
+        $uploaded = $request->file('file');
 
         $file = UploadedFileHistory::create([
             'file_name' => $uploaded->getClientOriginalName(),
             'stored_path' => $uploaded->store('csv_uploads'), // store the file temporarily
             'status' => 'pending',
+            'file_size' => $uploaded->getSize(),
         ]);
+        // info('FILE STORED');
+
 
         // Dispatch the job to process the uploaded file (queued)
         ProcessUploadedFile::dispatch($file);
 
-        // return redirect()->back()->with('success', 'File uploaded successfully and is being processed.');
-        // API endpoint response
-        return new UploadedFileHistoryResource($file);
+        // Check if the request expects JSON (API request) or HTML (web request)
+        if ($request->expectsJson() || $request->wantsJson()) {
+            // API endpoint response - use transformer
+            return new UploadedFileHistoryResource($file);
+        }
 
-        }   
+        // Web request - redirect to home page 
+        return redirect('/');
+    }
 }

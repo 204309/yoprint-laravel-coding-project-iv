@@ -2,7 +2,6 @@
 
 namespace App\Listeners;
 
-use App\Models\UploadedFileHistory;
 use App\Events\FileProcessStatusUpdated;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,7 +15,7 @@ class UpdateFileProcessStatus implements ShouldQueue
      */
     public function handle(FileProcessStatusUpdated $event): void
     {
-        // Update the file's status in the database
-        $event->file->update(['status' => $event->status]);
+        // The event implements ShouldBroadcast, so it auto-broadcasts via Reverb
+        info('Broadcasting status update for file ID ' . $event->uploadedFilePath->id . ' to status: ' . $event->status);
     }
 }

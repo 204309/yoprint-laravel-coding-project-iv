@@ -16,9 +16,10 @@ class FileProcessStatusUpdated implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(public UploadedFileHistory $file, public string $status)
+    public function __construct(public UploadedFileHistory $uploadedFilePath, public string $status)
     {
-        //
+        $this->uploadedFilePath = $uploadedFilePath;
+        $this->status = $status;
     }
 
     /**
@@ -36,10 +37,9 @@ class FileProcessStatusUpdated implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'file_id' => $this->file->id,
+            'file_id' => $this->uploadedFilePath->id,
+            'file_name' => $this->uploadedFilePath->file_name,
             'status' => $this->status,
-            'file_name' => $this->file->file_name,
-            'uploaded_at' => $this->file->created_at->toDateTimeString(),
         ];
     }
 }
