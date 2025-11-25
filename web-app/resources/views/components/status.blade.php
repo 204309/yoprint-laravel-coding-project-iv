@@ -6,7 +6,7 @@
 
     $classes = match($normalized) {
         'completed' => 'bg-green-700/60 text-emerald-50',
-        'processing' => 'bg-yellow-600/60 text-yellow-50',
+        'processing' => 'animate-pulse bg-yellow-600/60 text-yellow-50',
         'failed' => 'bg-red-700/60 text-red-50',
         default => 'bg-gray-800/60 text-gray-100',
     };

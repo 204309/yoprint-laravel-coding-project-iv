@@ -49,7 +49,12 @@
                     @forelse ($uploadedFiles as $file)
                         <tr data-file-id="{{ $file->id }}" class="hover:bg-gray-100 transition-colors duration-200">
                             <td class="px-6 py-4 whitespace-nowrap w-1/3">{{-- Use widths to align with headers --}}
-                                {{ $file->created_at->format('Y-m-d h:i A') }}
+                                {{-- {{ $file->created_at->format('Y-m-d h:i A') }} --}}
+                                <span class="local-time" data-timestamp="{{ $file->created_at->toISOString() }}">
+                                    {{ $file->created_at->format('Y-m-d h:i A') }}
+                                </span>
+
+
                                 <br>
                                 <span class="time-ago text-gray-500"
                                     data-timestamp="{{ $file->created_at->toISOString() }}">
@@ -63,7 +68,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td class="border px-4 py-2 text-center" colspan="3">No uploaded files found.</td>
+                            <td class="px-4 py-35 text-center" colspan="3">No uploaded files found.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -101,6 +106,34 @@
             });
     }
 
+    // Format as YYYY/MM/DD hh:mm AM/PM in local timezone
+    function formatLocalDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 → 12
+
+        return `${year}/${month}/${day} ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+    }
+
+    // Convert all timestamps to local time
+    function convertToLocalTimes() {
+        document.querySelectorAll('.local-time').forEach(el => {
+            const ts = el.getAttribute('data-timestamp');
+            if (!ts) return;
+
+            const date = new Date(ts);
+            el.textContent = formatLocalDate(date);
+        });
+    }
+
+
     // Update all "time-ago" timestamps
     function updateTimestamps() {
         document.querySelectorAll('.time-ago').forEach(el => {
@@ -131,6 +164,7 @@
     // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', () => {
         initializeEcho();
+        convertToLocalTimes();
         updateTimestamps();
         setInterval(updateTimestamps, 10000); // Update every 10s
     });
