@@ -1,4 +1,5 @@
-<h3>🌻 Operates the project through WSL Ubuntu from Window OS 👩🏻‍💻</h3>
+<h3>🌻 Operates the project through WSL Ubuntu from Windows OS 👩🏻‍💻</h3>
+| Running through WSL because Laravel Horizon is not supported on Windows OS.
 
 
 <h2>Here are photos of the output: </h2>
